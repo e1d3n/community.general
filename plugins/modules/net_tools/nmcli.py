@@ -236,6 +236,11 @@ options:
        description:
             - This is used with IPIP/SIT - IPIP/SIT local IP address.
        type: str
+    firewalld_zone:
+       description:
+            - The firewalld zone to interface.
+            - If not set the default zone is used
+        type: str
 '''
 
 EXAMPLES = r'''
@@ -449,6 +454,16 @@ EXAMPLES = r'''
       gw4: 192.0.2.1
       state: present
 
+  - name: Add an Ethernet connection with static IP configuration and set internal firewalld zone for it
+    community.general.nmcli:
+      conn_name: my-eth1
+      ifname: eth1
+      type: ethernet
+      ip4: 192.0.2.100/24
+      gw4: 192.0.2.1
+      state: present
+      firewalld_zone: internal
+
   - name: Add an Team connection with static IP configuration
     community.general.nmcli:
       conn_name: my-team1
@@ -609,6 +624,7 @@ class Nmcli(object):
         self.ip_tunnel_remote = module.params['ip_tunnel_remote']
         self.nmcli_bin = self.module.get_bin_path('nmcli', True)
         self.dhcp_client_id = module.params['dhcp_client_id']
+        self.firewalld_zone = module.params['firewalld_zone']
 
         if self.ip4:
             self.ipv4_method = 'manual'
@@ -664,6 +680,12 @@ class Nmcli(object):
         if self.slave_conn_type:
             options.update({
                 'connection.master': self.master,
+            })
+
+        # Firewalld zone option
+        if self.firewalld_zone:
+            options.update({
+                'zone': self.firewalld_zone
             })
 
         # Options specific to a connection type.
@@ -1043,6 +1065,8 @@ def main():
             ip_tunnel_dev=dict(type='str'),
             ip_tunnel_local=dict(type='str'),
             ip_tunnel_remote=dict(type='str'),
+            # firewalld zone
+            firewalld_zone=dict(type='str'),
         ),
         supports_check_mode=True,
     )
