@@ -454,7 +454,7 @@ EXAMPLES = r'''
       gw4: 192.0.2.1
       state: present
 
-  - name: Add an Ethernet connection with static IP configuration and set internal firewalld zone for it
+  - name: Add an Ethernet connection with static IP configuration and internal firewalld zone
     community.general.nmcli:
       conn_name: my-eth1
       ifname: eth1
@@ -685,7 +685,7 @@ class Nmcli(object):
         # Firewalld zone option
         if self.firewalld_zone:
             options.update({
-                'zone': self.firewalld_zone
+                'connection.zone': self.firewalld_zone
             })
 
         # Options specific to a connection type.
